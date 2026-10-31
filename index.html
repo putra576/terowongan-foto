@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Selamat Datang, Sayangku</title>
+<style>
+:root{--bg:#07060b;--ink:#fff;--pink:#ff4f93;--panel:rgba(20,10,20,.72);color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS",system-ui,sans-serif;overflow:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#word{position:fixed;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font:900 clamp(2.4rem,11vw,6rem)/1 Impact,"Arial Black",sans-serif;letter-spacing:.02em;text-shadow:0 0 24px rgba(0,0,0,.7);pointer-events:none;padding:0 1rem}
+#panel{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);width:min(94vw,560px);background:var(--panel);backdrop-filter:blur(10px);border-radius:18px;padding:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button,label.btn{background:var(--pink);color:#1a0610;border:0;border-radius:999px;padding:10px 16px;font:700 .95rem inherit;cursor:pointer}
+label.btn.alt{background:#ffffff1f;color:var(--ink)}
+button:focus-visible,label.btn:focus-within{outline:3px solid #fff;outline-offset:2px}
+input[type=file]{position:absolute;opacity:0;width:1px;height:1px}
+input[type=text]{flex:1 1 100%;background:#ffffff14;border:1px solid #ffffff30;color:var(--ink);border-radius:10px;padding:9px 12px;font:inherit}
+#status{flex:1 1 100%;font-size:.85rem;opacity:.8}
+#start{position:fixed;inset:0;display:grid;place-items:end center;background:radial-gradient(ellipse at 50% 38%,rgba(13,5,32,0) 0%,rgba(13,5,32,.35) 45%,rgba(13,5,32,.88) 100%);z-index:5;text-align:center;padding:2rem 2rem calc(env(safe-area-inset-bottom,0px) + 9vh)}
+#start h1{font:900 clamp(2rem,8vw,3.6rem)/1.05 Impact,"Arial Black",sans-serif;margin:0 0 .6rem;text-shadow:0 0 22px #ff2f7d,0 0 4px #000}
+.hrt{font-size:2rem;color:#ff5f9d;text-shadow:0 0 16px #ff2f7d;animation:hb 1.2s ease-in-out infinite}
+@keyframes hb{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+#go{box-shadow:0 0 0 0 rgba(255,79,147,.7);animation:ring 1.8s ease-out infinite}
+@keyframes ring{to{box-shadow:0 0 0 18px rgba(255,79,147,0)}}
+@media (prefers-reduced-motion:reduce){.hrt,#go{animation:none}}
+#start p{margin:0 auto 1.2rem;max-width:36ch;opacity:.92;font-size:1.05rem;line-height:1.5;text-shadow:0 0 8px #000}
+
+#panel{width:min(96vw,620px)}
+.tracks{flex:1 1 100%;display:flex;gap:6px;flex-wrap:wrap}
+.tracks button{background:#ffffff1f;color:var(--ink);font-size:.82rem;padding:8px 12px}
+.tracks button[aria-pressed=true]{background:var(--pink);color:#1a0610}
+#seek{flex:1 1 100%;accent-color:var(--pink)}
+#word.ly{font:800 clamp(1.5rem,6.5vw,3rem)/1.15 "Trebuchet MS",system-ui,sans-serif;top:38%;padding:0 6vw}
+dialog{background:#1a0d17;color:var(--ink);border:1px solid #ffffff30;border-radius:18px;width:min(92vw,520px);padding:18px}
+dialog::backdrop{background:#000a}
+dialog h2{margin:0 0 6px;font-size:1.15rem}
+dialog p{margin:0 0 10px;font-size:.85rem;opacity:.8}
+dialog textarea{width:100%;min-height:150px;background:#ffffff14;border:1px solid #ffffff30;color:var(--ink);border-radius:10px;padding:10px;font:inherit;resize:vertical}
+dialog input[type=text]{width:100%;margin-bottom:8px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.row .alt{background:#ffffff1f;color:var(--ink)}
+#tap{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 16px);transform:translateX(-50%);z-index:4;display:none;width:min(92vw,420px);text-align:center;padding:14px}
+#inbox{max-height:40vh;overflow:auto;margin-top:12px;display:none}
+#inbox div{border-top:1px solid #ffffff25;padding:8px 0;font-size:.9rem}
+#inbox b{color:var(--pink)}
+.tracks{flex-direction:column;flex-wrap:nowrap;gap:4px}
+.tracks button{display:flex;gap:10px;align-items:baseline;text-align:left;width:100%;border-radius:12px;font-size:.9rem}
+.tracks button .n{opacity:.6;min-width:1.2em}
+.tracks button .a{opacity:.7;font-size:.78rem;margin-left:auto}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+#word{top:15%;font-size:clamp(2rem,9vw,4.2rem)}
+#ptog{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:3;padding:8px 14px;font-size:.85rem;background:#00000099;color:#fff;backdrop-filter:blur(6px)}
+#gal{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity 2s ease}
+body:not(.on) #panel,body:not(.on) #ptog{display:none}
+#gal.on{pointer-events:auto;touch-action:none;cursor:grab}
+</style>
+</head>
+<body>
+<div id="start"><div>
+<div class="hrt" aria-hidden="true">♥</div>
+<h1>Selamat Datang, Sayangku</h1>
+<p>Sayang, aku minta maaf karena pernah pergi dan melukai hatimu. Semoga lewat kenangan kita ini, kamu mau memaafkanku. Aku mencintaimu, selamanya. I love you forever.</p>
+<button id="go">Mulai</button>
+</div></div>
+<canvas id="c"></canvas>
+<canvas id="fx" aria-hidden="true"></canvas>
+<canvas id="gal" aria-hidden="true"></canvas>
+<button id="ptog" aria-expanded="true">Sembunyikan panel</button>
+<div id="panel">
+<div class="tracks" id="tracks"></div>
+<input type="range" id="seek" min="0" max="1000" value="0" aria-label="Posisi lagu">
+<button id="prev" style="background:#ffffff1f;color:#fff" aria-label="Lagu sebelumnya">⏮</button>
+<button id="play">Putar musik</button>
+<button id="next" style="background:#ffffff1f;color:#fff" aria-label="Lagu berikutnya">⏭</button>
+<button class="alt" id="msgBtn" style="background:#ffffff1f;color:#fff">Pesan untuk pembuat</button>
+<div id="status">Pilih lagu, lalu tekan Putar musik.</div>
+</div>
+<dialog id="msgDlg">
+<h2>Pesan untuk pembuat</h2>
+<p>Tulis kesan, saran, atau pesanmu. Hanya pembuat halaman ini yang bisa membacanya.</p>
+<input type="text" id="msgName" placeholder="Namamu (boleh kosong)" maxlength="40">
+<textarea id="msgText" placeholder="Tulis pesanmu" maxlength="500"></textarea>
+<div class="row">
+<button id="msgSend">Kirim pesan</button>
+<button class="alt" id="msgClose">Tutup</button>
+</div>
+<p id="msgStat" style="margin-top:10px"></p>
+<div id="inbox"></div>
+</dialog>
+<audio id="aud" preload="auto"></audio>
+<script>window.SONGS=["01-aku-milikmu-dewa19.mp3","02-ceritanya-jatuh-cinta-aku-jeje.mp3","03-bila-aku-jeje.mp3"];</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+var N=20,RINGS=44,SEG=14,R=3.2,GAP=1.25;
+var canvas=document.getElementById('c');
+var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+var scene=new THREE.Scene();scene.background=new THREE.Color(0x0d0520);
+scene.fog=new THREE.Fog(0x0d0520,6,GAP*RINGS*0.8);
+var cam=new THREE.PerspectiveCamera(75,1,.1,200);
+function resize(){var w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
+addEventListener('resize',resize);resize();
+
+function makeTex(i,img){
+  var c=document.createElement('canvas');c.width=256;c.height=340;var g=c.getContext('2d');
+  if(img){
+    var s=Math.max(256/img.width,340/img.height),w=img.width*s,h=img.height*s;
+    g.drawImage(img,(256-w)/2,(340-h)/2,w,h);
+  }else{
+    var gr=g.createRadialGradient(128,170,10,128,170,200);
+    gr.addColorStop(0,'#ffd0e3');gr.addColorStop(1,'#ff3d86');
+    g.fillStyle=gr;g.fillRect(0,0,256,340);
+    g.fillStyle='#2a0a16';g.font='bold 30px Georgia,serif';g.textAlign='center';
+    g.fillText('Photo '+(i+1),128,180);
+  }
+  g.strokeStyle='#120309';g.lineWidth=10;g.strokeRect(0,0,256,340);
+  var t=new THREE.CanvasTexture(c);t.anisotropy=4;return t;
+}
+var mats=[];
+for(var i=0;i<N;i++)mats.push(new THREE.MeshBasicMaterial({map:makeTex(i),side:THREE.DoubleSide}));
+
+var tunnel=new THREE.Group();scene.add(tunnel);
+var arc=2*Math.PI*R/SEG*0.96,geo=new THREE.PlaneGeometry(arc,GAP*0.92);
+var rings=[];
+for(var r=0;r<RINGS;r++){
+  var ring=new THREE.Group();ring.position.z=-r*GAP;ring.rotation.z=(r%2)*Math.PI/SEG;
+  for(var s=0;s<SEG;s++){
+    var m=new THREE.Mesh(geo,mats[(r*3+s)%N]);
+    var a=s/SEG*Math.PI*2;
+    m.position.set(Math.cos(a)*R,Math.sin(a)*R,0);
+    m.rotation.order='ZXY';m.rotation.x=Math.PI/2;m.rotation.z=a-Math.PI/2;
+    ring.add(m);
+  }
+  tunnel.add(ring);rings.push(ring);
+}
+
+var DN=520,DL=60,dbase=[],dpos=new Float32Array(DN*3);
+for(var di=0;di<DN;di++){var da=Math.random()*Math.PI*2,dr=.4+Math.random()*(R-.7);dbase.push([Math.cos(da)*dr,Math.sin(da)*dr,Math.random()*DL])}
+var dgeo=new THREE.BufferGeometry();dgeo.setAttribute('position',new THREE.BufferAttribute(dpos,3));
+var dust=new THREE.Points(dgeo,new THREE.PointsMaterial({size:.09,color:0xffb8dc,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false}));
+dust.frustumCulled=false;scene.add(dust);
+var camZ=0,speed=5,t0=performance.now();
+var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce)speed=1.5;
+function loop(now){
+  var dt=Math.min((now-t0)/1000,.05);t0=now;
+  if(typeof readBeat==='function')readBeat();
+  var bt=window.__beat||0;
+  camZ-=(speed+bt*(reduce?1:8))*dt;
+  cam.position.z=camZ;cam.position.x=Math.sin(now/1400)*.35;cam.position.y=Math.cos(now/1700)*.3;
+  cam.rotation.z=Math.sin(now/2600)*.12*(reduce?.2:1);
+  var fov=75+bt*(reduce?0:7);if(Math.abs(cam.fov-fov)>.05){cam.fov=fov;cam.updateProjectionMatrix()}
+  tunnel.rotation.z+=dt*(reduce?.02:.12);
+  var hue=.9+.07*Math.sin(now/4000);
+  for(var m=0;m<mats.length;m++)mats[m].color.setHSL(hue,.3,.85+bt*.15);
+  for(var i=0;i<rings.length;i++){
+    var ring=rings[i];
+    while(ring.position.z>camZ+GAP*2)ring.position.z-=RINGS*GAP;
+    while(ring.position.z<camZ-RINGS*GAP+GAP*2)ring.position.z+=RINGS*GAP;
+    var sc=1+(reduce?.02:.09)*Math.sin(ring.position.z*.33+now/700)+bt*.05;
+    ring.scale.set(sc,sc,1);
+  }
+  for(var k=0;k<DN;k++){
+    var d=(((camZ-dbase[k][2])%DL)+DL)%DL;
+    dpos[k*3]=dbase[k][0];dpos[k*3+1]=dbase[k][1];dpos[k*3+2]=camZ-d;
+  }
+  dgeo.attributes.position.needsUpdate=true;
+  renderer.render(scene,cam);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(function(n){t0=n;loop(n)});
+
+
+var TRACKS=[['Aku Milikmu','Dewa 19'],['Ceritanya Jatuh Cinta','Aku Jeje'],['Bila','Aku Jeje']];
+var $=function(i){return document.getElementById(i)};
+var aud=$('aud'),st=$('status'),playBtn=$('play');
+var cur=0,SU=[],usedData=false;
+function songURL(i){
+  if(usedData||SONGS[i].indexOf('data:')!==0)return SONGS[i];
+  try{
+    if(!SU[i]){var bin=atob(SONGS[i].split(',')[1]),u=new Uint8Array(bin.length);for(var j=0;j<bin.length;j++)u[j]=bin.charCodeAt(j);SU[i]=URL.createObjectURL(new Blob([u],{type:'audio/mpeg'}))}
+    return SU[i];
+  }catch(e){usedData=true;return SONGS[i]}
+}
+aud.addEventListener('error',function(){if(!usedData){usedData=true;an=null;var w=!aud.paused;aud.src=SONGS[cur];if(w)aud.play().catch(function(){})}});
+var AC=null,an=null,fd=null,beat=0;
+function initAudioFx(){
+  if(an||usedData)return;
+  try{
+    var C=window.AudioContext||window.webkitAudioContext;AC=new C();
+    var src=AC.createMediaElementSource(aud);an=AC.createAnalyser();an.fftSize=256;an.smoothingTimeConstant=.7;
+    src.connect(an);an.connect(AC.destination);fd=new Uint8Array(an.frequencyBinCount);
+  }catch(e){an=null}
+}
+aud.addEventListener('play',function(){initAudioFx();if(AC&&AC.state==='suspended')AC.resume()});
+function readBeat(){
+  if(!an){beat*=.92;window.__beat=beat;return}
+  an.getByteFrequencyData(fd);var t=0;for(var q=1;q<7;q++)t+=fd[q];
+  var v=Math.min(1,Math.max(0,(t/6-110)/110));beat+=(v-beat)*.35;window.__beat=beat;
+}
+window.readBeat=readBeat;
+
+// Lagu
+var tb=$('tracks');
+function markTracks(){[].forEach.call(tb.children,function(b,i){b.setAttribute('aria-pressed',i===cur?'true':'false')})}
+TRACKS.forEach(function(t,i){
+  var b=document.createElement('button');
+  var n=document.createElement('span');n.className='n';n.textContent=(i+1)+'.';
+  var ti=document.createElement('span');ti.textContent=t[0];
+  var ar=document.createElement('span');ar.className='a';ar.textContent=t[1];
+  b.appendChild(n);b.appendChild(ti);b.appendChild(ar);
+  b.addEventListener('click',function(){load(i,true)});tb.appendChild(b);
+});
+function load(i,play){
+  cur=i;aud.src=songURL(i);markTracks();
+  st.textContent='Lagu: '+TRACKS[i][0]+' · '+TRACKS[i][1];
+  if(play)aud.play().then(function(){playBtn.textContent='Jeda'}).catch(function(){playBtn.textContent='Putar musik'});
+  else playBtn.textContent='Putar musik';
+}
+load(0,false);
+function step(d){load((cur+d+TRACKS.length)%TRACKS.length,true)}
+$('prev').addEventListener('click',function(){step(-1)});
+$('next').addEventListener('click',function(){step(1)});
+aud.addEventListener('ended',function(){step(1)});
+playBtn.addEventListener('click',function(){
+  if(aud.paused){aud.play();playBtn.textContent='Jeda'}else{aud.pause();playBtn.textContent='Putar musik'}
+});
+$('go').addEventListener('click',function(){
+  $('start').style.display='none';document.body.classList.add('on');galTimer=setInterval(function(){galScene(!galOn)},30000);
+  aud.play().then(function(){playBtn.textContent='Jeda'}).catch(function(){});
+});
+var seek=$('seek'),seeking=false;
+seek.addEventListener('input',function(){seeking=true;if(aud.duration)aud.currentTime=aud.duration*seek.value/1000});
+seek.addEventListener('change',function(){seeking=false});
+
+// Penggeser lagu
+setInterval(function(){
+  if(!seeking&&aud.duration)seek.value=Math.round(aud.currentTime/aud.duration*1000);
+},130);
+
+// Sembunyikan panel
+$('ptog').addEventListener('click',function(){
+  var pn=$('panel'),h=pn.style.display==='none';
+  pn.style.display=h?'':'none';this.textContent=h?'Sembunyikan panel':'Tampilkan panel';this.setAttribute('aria-expanded',h?'true':'false');
+});
+
+// Efek langit: bintang, bintang jatuh, dan hati dari titik-titik
+var fx=$('fx'),fg=fx.getContext('2d'),FW=0,FH=0,DPR=1;
+function fxResize(){DPR=Math.min(devicePixelRatio||1,2);FW=innerWidth;FH=innerHeight;fx.width=FW*DPR;fx.height=FH*DPR;fg.setTransform(DPR,0,0,DPR,0,0)}
+addEventListener('resize',fxResize);fxResize();
+var STARS=[];for(var si=0;si<130;si++)STARS.push({x:Math.random(),y:Math.random(),r:Math.random()*1.4+.3,p:Math.random()*6.28,s:.6+Math.random()*2});
+var SHOOT=[],nextShoot=0,PAL=['255,255,255','255,224,138','201,166,255','159,216,255'];
+function spawnShoot(){
+  var sp=450+Math.random()*500,a=Math.PI*(0.72+Math.random()*.1);
+  SHOOT.push({x:FW*(.25+Math.random()*.85),y:-30-Math.random()*FH*.2,vx:Math.cos(a)*sp,vy:-Math.sin(a)*sp*-1,L:70+Math.random()*110,c:PAL[Math.floor(Math.random()*PAL.length)]});
+}
+var CYC=10,fxT0=performance.now();
+function ease(u){return u<0?0:u>1?1:1-Math.pow(1-u,3)}
+function fxFrame(now){
+  var t=(now-fxT0)/1000,ct=t%CYC,bt=window.__beat||0;
+  fg.clearRect(0,0,FW,FH);fg.globalCompositeOperation='lighter';
+  for(var i=0;i<STARS.length;i++){
+    var S=STARS[i],al=.35+.65*Math.abs(Math.sin(t*S.s+S.p));
+    fg.fillStyle='rgba(255,255,255,'+(al*.8).toFixed(2)+')';
+    fg.beginPath();fg.arc(S.x*FW,S.y*FH,S.r*(1+bt*.5),0,6.283);fg.fill();
+  }
+  if(now>nextShoot){spawnShoot();nextShoot=now+(reduce?1800:380+Math.random()*650)}
+  for(var k=SHOOT.length-1;k>=0;k--){
+    var o=SHOOT[k];o.x+=o.vx/60;o.y+=o.vy/60;
+    var ln=Math.hypot(o.vx,o.vy),ux=o.vx/ln,uy=o.vy/ln;
+    var g=fg.createLinearGradient(o.x,o.y,o.x-ux*o.L,o.y-uy*o.L);
+    g.addColorStop(0,'rgba('+o.c+',.95)');g.addColorStop(1,'rgba('+o.c+',0)');
+    fg.strokeStyle=g;fg.lineWidth=2;fg.beginPath();fg.moveTo(o.x,o.y);fg.lineTo(o.x-ux*o.L,o.y-uy*o.L);fg.stroke();
+    fg.fillStyle='rgba('+o.c+',1)';fg.beginPath();fg.arc(o.x,o.y,2.2,0,6.283);fg.fill();
+    if(o.x<-200||o.y>FH+200)SHOOT.splice(k,1);
+  }
+  fg.globalCompositeOperation='source-over';
+  requestAnimationFrame(fxFrame);
+}
+requestAnimationFrame(fxFrame);
+
+// Adegan 2: galaksi foto (muncul setelah 30 detik)
+var PHOTOS=["foto01.webp","foto02.webp","foto03.webp","foto04.webp","foto05.webp","foto06.webp","foto07.webp","foto08.webp","foto09.webp","foto10.webp","foto11.webp","foto12.webp","foto13.webp","foto14.webp","foto15.webp","foto16.webp","foto17.webp","foto18.webp","foto19.webp","foto20.webp"];
+var gal=$('gal'),gg=gal.getContext('2d'),galOn=false,galTimer=null,GW=0,GH=0;
+function galResize(){var d=Math.min(devicePixelRatio||1,2);GW=innerWidth;GH=innerHeight;gal.width=GW*d;gal.height=GH*d;gg.setTransform(d,0,0,d,0,0)}
+addEventListener('resize',galResize);galResize();
+var GIMG=PHOTOS.map(function(u){var im=new Image();im.src=u;return im});
+GIMG.forEach(function(im,k){
+  if(k>=mats.length)return;
+  var apply=function(){var tex=makeTex(k,im);mats[k].map.dispose();mats[k].map=tex;mats[k].needsUpdate=true};
+  if(im.complete&&im.naturalWidth)apply();else im.addEventListener('load',apply);
+});
+var GS=[],BK=[],BUB=[];
+for(var gi=0;gi<160;gi++)GS.push({a:Math.random()*6.283,r:Math.random(),z:Math.random()*6.28,s:.5+Math.random()*2.5});
+for(var bi=0;bi<18;bi++)BK.push({x:Math.random(),y:Math.random(),r:18+Math.random()*60,v:.01+Math.random()*.03,o:.12+Math.random()*.2});
+var NB=Math.max(12,PHOTOS.length),SK=NB>12?.8:1;
+for(var ui=0;ui<NB;ui++)BUB.push({a:Math.random()*6.283,rx:.14+Math.random()*.34,k:.4+Math.random()*.4,tilt:Math.random()*3.14,inc:(Math.random()-.5)*1.7,sp:(.15+Math.random()*.3)*(Math.random()<.5?-1:1),sz:(.075+Math.random()*.05)*SK});
+function galScene(show){
+  galOn=show;gal.style.opacity=show?'1':'0';gal.classList.toggle('on',show);
+  if(show)hintShow();else endPt();
+  var b=$('galBtn');if(b)b.textContent=show?'Kembali ke adegan 1':'Lihat adegan 2';
+}
+var hintEl=null,hintTm=null;
+function hintShow(){
+  if(!hintEl){hintEl=document.createElement('div');hintEl.style.cssText='position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 14px);z-index:3;background:#00000099;color:#fff;border-radius:12px;padding:8px 12px;font-size:.82rem;max-width:60vw;transition:opacity 1s;pointer-events:none';hintEl.textContent='Tekan foto untuk memperbesar. Geser layar ke arah mana saja untuk memutar galaksi.';document.body.appendChild(hintEl)}
+  hintEl.style.opacity='1';clearTimeout(hintTm);hintTm=setTimeout(function(){hintEl.style.opacity='0'},8000);
+}
+function drawBubble(b,x,y,s,i){
+  var h=gg.createRadialGradient(x,y,s*.8,x,y,s*1.9);
+  h.addColorStop(0,'rgba(255,60,150,.55)');h.addColorStop(1,'rgba(255,60,150,0)');
+  gg.fillStyle=h;gg.beginPath();gg.arc(x,y,s*1.9,0,6.283);gg.fill();
+  gg.save();gg.beginPath();gg.arc(x,y,s,0,6.283);gg.clip();
+  var im=GIMG.length?GIMG[i%GIMG.length]:null;
+  if(im&&im.complete&&im.naturalWidth){
+    var sc=Math.max(2*s/im.naturalWidth,2*s/im.naturalHeight),w=im.naturalWidth*sc,hh=im.naturalHeight*sc;
+    gg.drawImage(im,x-w/2,y-hh/2,w,hh);
+  }else{
+    var g=gg.createRadialGradient(x,y,0,x,y,s);g.addColorStop(0,'#ffd0e3');g.addColorStop(1,'#ff3d86');
+    gg.fillStyle=g;gg.fillRect(x-s,y-s,2*s,2*s);
+    gg.fillStyle='#fff';gg.font=Math.round(s*1.1)+'px sans-serif';gg.textAlign='center';gg.textBaseline='middle';gg.fillText('\u2665',x,y+s*.05);
+  }
+  gg.restore();
+  gg.lineWidth=Math.max(2,s*.07);gg.strokeStyle='#ff5fa8';gg.beginPath();gg.arc(x,y,s,0,6.283);gg.stroke();
+  gg.lineWidth=1;gg.strokeStyle='rgba(255,255,255,.8)';gg.beginPath();gg.arc(x,y,s*.94,0,6.283);gg.stroke();
+}
+var galLast=performance.now(),yaw=0,pitch=.25,vyaw=0,vpitch=0,hold=null,drag=null,GL=[];
+var PLN=[
+ {c:['#cfe9ff','#3b7be0','#0a1b4d'],r:.05,rx:.62,k:.8,tilt:.4,inc:.5,sp:.22,ring:0},
+ {c:['#ffe0a8','#e0742a','#4a1c0a'],r:.07,rx:.82,k:.9,tilt:1.2,inc:-.6,sp:-.14,ring:1},
+ {c:['#e3c8ff','#8a4fe0','#2a1050'],r:.04,rx:.5,k:1,tilt:2.3,inc:.9,sp:.3,ring:0},
+ {c:['#b8fff0','#2fb89a','#0a3a32'],r:.055,rx:.95,k:.75,tilt:.8,inc:-.9,sp:.1,ring:1},
+ {c:['#ffc4dc','#e0457d','#4a0f2a'],r:.035,rx:.72,k:.85,tilt:2.9,inc:.2,sp:-.26,ring:0}
+];
+var GXY=[
+ {rx:1.05,k:.8,tilt:.5,inc:.7,sp:.05,sz:.26,hue:'143,184,255'},
+ {rx:1.15,k:.9,tilt:2.0,inc:-.6,sp:-.04,sz:.22,hue:'255,159,208'},
+ {rx:.98,k:.7,tilt:3.5,inc:1.1,sp:.06,sz:.18,hue:'255,224,138'}
+];
+PLN.concat(GXY).forEach(function(o){o.a=Math.random()*6.283});
+var GSP=document.createElement('canvas');GSP.width=GSP.height=160;
+(function(){
+  var q=GSP.getContext('2d'),cg=q.createRadialGradient(80,80,0,80,80,30);
+  cg.addColorStop(0,'rgba(255,255,255,.95)');cg.addColorStop(1,'rgba(255,255,255,0)');
+  q.fillStyle=cg;q.fillRect(0,0,160,160);
+  for(var arm=0;arm<2;arm++)for(var i=0;i<260;i++){
+    var tt=i/260,an=tt*5.2+arm*Math.PI,r=tt*72+(Math.random()-.5)*8;
+    q.fillStyle='rgba(255,255,255,'+(.8-tt*.55).toFixed(2)+')';
+    q.fillRect(80+Math.cos(an)*r,80+Math.sin(an)*r,1.6,1.6);
+  }
+})();
+var SH=[];
+for(var sj=0;sj<300;sj++){var u=Math.random()*2-1,ph=Math.random()*6.283,rr=Math.sqrt(1-u*u),R2=.9+Math.random()*.2;SH.push({x:rr*Math.cos(ph)*R2,y:u*R2,z:rr*Math.sin(ph)*R2,p:Math.random()*6.28,s:.6+Math.random()*2.5})}
+function proj(x,y,z,M,cx,cy){
+  var cw=Math.cos(yaw),sw=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+  var x3=x*cw+z*sw,z3=-x*sw+z*cw,y4=y*cp-z3*sp,z4=y*sp+z3*cp,f=M*2.4,sc=f/(f-z4);
+  return {x:cx+x3*sc,y:cy+y4*sc,z:z4,sc:sc};
+}
+function orbit(o,M,A){
+  var x0=Math.cos(A)*o.rx*M,y0=Math.sin(A)*o.rx*M*o.k,c=Math.cos(o.tilt),s=Math.sin(o.tilt);
+  var x1=x0*c-y0*s,y1=x0*s+y0*c,iv=o.inc||0;
+  return [x1,y1*Math.cos(iv),y1*Math.sin(iv)];
+}
+function drawPlanet(X,Y,r,p){
+  gg.globalCompositeOperation='lighter';
+  var h=gg.createRadialGradient(X,Y,r*.8,X,Y,r*2.1);h.addColorStop(0,'rgba(180,200,255,.28)');h.addColorStop(1,'rgba(180,200,255,0)');
+  gg.fillStyle=h;gg.beginPath();gg.arc(X,Y,r*2.1,0,6.283);gg.fill();
+  gg.globalCompositeOperation='source-over';
+  var RH=r*(.3+.3*Math.abs(Math.cos(pitch))),RW=r*1.9;
+  gg.lineWidth=Math.max(1.5,r*.13);gg.strokeStyle='rgba(255,235,205,.6)';
+  if(p.ring){gg.beginPath();gg.ellipse(X,Y,RW,RH,.35,Math.PI,Math.PI*2);gg.stroke()}
+  var g=gg.createRadialGradient(X-r*.4,Y-r*.4,r*.1,X,Y,r);
+  g.addColorStop(0,p.c[0]);g.addColorStop(.55,p.c[1]);g.addColorStop(1,p.c[2]);
+  gg.fillStyle=g;gg.beginPath();gg.arc(X,Y,r,0,6.283);gg.fill();
+  if(p.ring){gg.beginPath();gg.ellipse(X,Y,RW,RH,.35,0,Math.PI);gg.stroke()}
+}
+function ptPos(e){var r=gal.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}}
+gal.addEventListener('pointerdown',function(e){
+  if(!galOn)return;
+  var p=ptPos(e),hit=null;
+  for(var i=GL.length-1;i>=0;i--){var o=GL[i];if(Math.hypot(p.x-o.dx,p.y-o.dy)<=o.s*1.05){hit=o.b;break}}
+  try{gal.setPointerCapture(e.pointerId)}catch(x){}
+  if(hit){hold=hit}else{drag={x:p.x,y:p.y,t:performance.now()};vyaw=0;vpitch=0}
+});
+gal.addEventListener('pointermove',function(e){
+  if(!drag)return;
+  var p=ptPos(e),now=performance.now(),dt=Math.max((now-drag.t)/1000,.001);
+  var dx=p.x-drag.x,dy=p.y-drag.y;
+  yaw+=dx*.007;pitch+=dy*.007;
+  vyaw=Math.max(-6,Math.min(6,dx*.007/dt));vpitch=Math.max(-6,Math.min(6,dy*.007/dt));
+  drag.x=p.x;drag.y=p.y;drag.t=now;
+});
+function endPt(){hold=null;drag=null}
+gal.addEventListener('pointerup',endPt);gal.addEventListener('pointercancel',endPt);
+function galFrame(now){
+  var dt=Math.min((now-galLast)/1000,.05);galLast=now;
+  if(galOn){
+    var t=now/1000,bt=window.__beat||0,M=Math.min(GW,GH*.9),cx=GW/2,cy=GH*.42,sl=reduce?.3:1;
+    gg.globalCompositeOperation='source-over';gg.fillStyle='#050208';gg.fillRect(0,0,GW,GH);
+    gg.globalCompositeOperation='lighter';
+    BK.forEach(function(k){
+      k.y-=k.v*dt*sl;if(k.y<-.1)k.y=1.1;
+      var g=gg.createRadialGradient(k.x*GW,k.y*GH,0,k.x*GW,k.y*GH,k.r);
+      g.addColorStop(0,'rgba(255,40,150,'+k.o+')');g.addColorStop(1,'rgba(255,40,150,0)');
+      gg.fillStyle=g;gg.beginPath();gg.arc(k.x*GW,k.y*GH,k.r,0,6.283);gg.fill();
+    });
+    if(!drag){yaw+=(vyaw+.05*sl)*dt;pitch+=vpitch*dt}
+    vyaw*=Math.max(0,1-dt*2);vpitch*=Math.max(0,1-dt*2);
+    SH.forEach(function(q){
+      var p=proj(q.x*M,q.y*M,q.z*M,M,cx,cy);
+      var al=(.2+.6*Math.abs(Math.sin(t*q.s+q.p)))*Math.min(1,Math.max(.25,p.sc-.4));
+      gg.fillStyle='rgba(255,240,205,'+al.toFixed(2)+')';
+      gg.fillRect(p.x,p.y,1.2*p.sc+.6,1.2*p.sc+.6);
+    });
+    gg.globalCompositeOperation='source-over';
+    var pr=1+.06*Math.sin(t*3)+bt*.25,IT=[];
+    IT.push({z:0,draw:function(){
+      gg.globalCompositeOperation='lighter';
+      var sg=gg.createRadialGradient(cx,cy,0,cx,cy,M*.2*pr);
+      sg.addColorStop(0,'rgba(255,235,90,.95)');sg.addColorStop(.3,'rgba(255,210,40,.4)');sg.addColorStop(1,'rgba(255,200,0,0)');
+      gg.fillStyle=sg;gg.beginPath();gg.arc(cx,cy,M*.2*pr,0,6.283);gg.fill();
+      gg.globalCompositeOperation='source-over';
+      gg.fillStyle='#ffe94d';gg.beginPath();gg.arc(cx,cy,M*.035*pr,0,6.283);gg.fill();
+    }});
+    PLN.forEach(function(o){
+      o.a+=o.sp*dt*sl;var P=orbit(o,M,o.a),p=proj(P[0],P[1],P[2],M,cx,cy);
+      IT.push({z:p.z,draw:function(){drawPlanet(p.x,p.y,o.r*M*p.sc,o)}});
+    });
+    GXY.forEach(function(o){
+      o.a+=o.sp*dt*sl;var P=orbit(o,M,o.a),p=proj(P[0],P[1],P[2],M,cx,cy);
+      IT.push({z:p.z,draw:function(){
+        var sz=o.sz*M*p.sc;
+        gg.save();gg.translate(p.x,p.y);gg.globalCompositeOperation='lighter';
+        var hg=gg.createRadialGradient(0,0,0,0,0,sz);hg.addColorStop(0,'rgba('+o.hue+',.35)');hg.addColorStop(1,'rgba('+o.hue+',0)');
+        gg.fillStyle=hg;gg.beginPath();gg.arc(0,0,sz,0,6.283);gg.fill();
+        gg.rotate(t*.25+o.tilt);gg.scale(1,.55+.45*Math.abs(Math.cos(pitch)));
+        gg.drawImage(GSP,-sz,-sz,2*sz,2*sz);
+        gg.restore();gg.globalCompositeOperation='source-over';
+      }});
+    });
+    BUB.forEach(function(b,i){
+      b.a+=b.sp*dt*sl;
+      var tg=(hold===b)?1:0;b.g=(b.g||0)+(tg-(b.g||0))*Math.min(1,dt*9);
+      var e=b.g*b.g*(3-2*b.g),P=orbit(b,M,b.a),p=proj(P[0],P[1],P[2],M,cx,cy);
+      var os=b.sz*M*p.sc*(1+bt*.1),x=p.x+(cx-p.x)*e,y=p.y+(cy-p.y)*e,sz=os+(M*.4-os)*e;
+      IT.push({z:p.z+e*M*5,b:b,x:x,y:y,s:sz,draw:function(){drawBubble(b,x,y,sz,i)}});
+    });
+    IT.sort(function(p,q){return p.z-q.z});
+    GL=IT.filter(function(o){return o.b}).map(function(o){return {b:o.b,dx:o.x,dy:o.y,s:o.s}});
+    IT.forEach(function(o){o.draw()});
+    gg.globalCompositeOperation='source-over';
+  }
+  requestAnimationFrame(galFrame);
+}
+requestAnimationFrame(galFrame);
+
+// Pesan untuk pembuat
+var dbp=null,userp=null,inboxOn=false;
+var msgDlg=$('msgDlg');
+$('msgBtn').addEventListener('click',function(){msgDlg.showModal()});
+if(!(window.claude&&claude.use))$('msgBtn').style.display='none';
+$('msgClose').addEventListener('click',function(){msgDlg.close()});
+function setupInbox(){
+  if(inboxOn||!dbp||!userp)return;inboxOn=true;
+  userp.isOwner().then(function(o){
+    if(!o)return;
+    var box=$('inbox');box.style.display='block';
+    dbp.collection('messages').onSnapshot(function(snap){
+      box.textContent='';var all=[];
+      snap.docs.forEach(function(d){var l=(d.data()||{}).list||[];l.forEach(function(m){all.push(m)})});
+      if(!all.length){box.textContent='Belum ada pesan.';return}
+      all.sort(function(x,y){return (y.ts||0)-(x.ts||0)});
+      all.slice(0,50).forEach(function(m){
+        var row=document.createElement('div'),n=document.createElement('b');
+        n.textContent=(m.name||'Tanpa nama')+': ';
+        row.appendChild(n);row.appendChild(document.createTextNode(m.text||''));box.appendChild(row);
+      });
+    },function(){});
+  });
+}
+if(window.claude&&claude.use){
+  claude.use('db').then(function(d){dbp=d;setupInbox()}).catch(function(){});
+  claude.use('user').then(function(u){userp=u;setupInbox()}).catch(function(){});
+}
+$('msgSend').addEventListener('click',function(){
+  var text=$('msgText').value.trim(),ms=$('msgStat');
+  if(!text){ms.textContent='Tulis pesannya dulu.';return}
+  if(!dbp){ms.textContent='Pesan hanya bisa dikirim saat halaman dibuka dari akun claude.ai.';return}
+  if(!userp){ms.textContent='Pesan hanya bisa dikirim saat halaman dibuka dari akun claude.ai.';return}
+  userp.id().then(function(id){
+    var ref=dbp.doc('messages/'+id);
+    return ref.get().then(function(snap){
+      var list=(snap.exists&&snap.data().list)||[];
+      list.push({name:$('msgName').value.trim().slice(0,40),text:text.slice(0,500),ts:Date.now()});
+      return ref.set({list:list.slice(-20)});
+    });
+  }).then(function(){$('msgText').value='';ms.textContent='Terkirim. Terima kasih!'})
+    .catch(function(){ms.textContent='Pesan gagal terkirim. Coba lagi nanti.'});
+});
+})();
+</script>
+</body>
+</html>
